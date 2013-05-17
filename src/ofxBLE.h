@@ -2,52 +2,52 @@
 //  ofxBLE.h
 //  ofxBLE
 //
-//  Created by kim jung un a.k.a azuremous on 8/15/12.
-//  Copyright (c) 2012 azuremous.net All rights reserved.
+//  Created by kim jung un on 5/16/13.
+//  Copyright (c) 2013 azuremous.net All rights reserved.
 //
 
 #pragma once
-
-#import <UIKit/UIKit.h>
-#import "BLeDiscovery.h"
+#import <Foundation/Foundation.h>
 #import "ofMain.h"
+#import "BLEdetector.h"
 
-@interface ofxBLEDelgate : UIViewController <BLeDiscoveryDelegate>
+@interface ofxBLEdelegate : UIViewController<alarmBLEdelegate>
 {
-    
-    BLeDiscovery * BLE;
-    NSInteger currentValue;
-    
+    BLEdetector * BLE;
 }
 
 -(id)init;
--(void)scan;
--(BOOL)connect;
+-(BOOL)scan;
+-(void)stopScan;
+-(void)setBLE:(NSString *)_BLEUUIDstring;
+-(void)setRX:(NSString *)_RXUUIDstring;
+-(void)setTX:(NSString *)_TXUUIDstring;
+-(BOOL)connect:(NSInteger)num;
 -(BOOL)disconnect;
--(BOOL)IsBLEConnected;
+-(BOOL)beConnected;
+
 @end
+
 
 class ofxBLE {
     
 private:
-    
-    ofxBLEDelgate * bleModule;
-    bool connectedBLE;
-    
-protected:
-    
-    bool bSetUUID;
+    ofxBLEdelegate * BLEmodule;
+    bool bConnectedBLE;
     
 public:
     ofxBLE();
-    ~ofxBLE();
-    void setup();
-    void scanning();
-    void update();
-    void connect();
+    virtual~ofxBLE();
+    bool setup();
+    bool setup(string _BLEUUID, string _RXUUID, string _TXUUID);
+    void setBLE(string _uuid);
+    void setRX(string _uuid);
+    void setTX(string _uuid);
+    void scan();
+    void stopScan();
+    void connectAction(int num = 0);
+    void connect(int num = 0);
     void disconnect();
-    void connectAction();
-    void setConnect(bool status);
-    bool isConnected() const;
+    
+    
 };
-

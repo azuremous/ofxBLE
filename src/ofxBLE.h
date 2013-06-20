@@ -1,6 +1,5 @@
 //
 //  ofxBLE.h
-//  ofxBLE
 //
 //  Created by kim jung un on 5/16/13.
 //  Copyright (c) 2013 azuremous.net All rights reserved.
@@ -20,8 +19,8 @@
 -(BOOL)scan;
 -(void)stopScan;
 -(void)setBLE:(NSString *)_BLEUUIDstring;
--(void)setRX:(NSString *)_RXUUIDstring;
--(void)setTX:(NSString *)_TXUUIDstring;
+-(void)getData:(NSString *)_UUIDstring;
+-(void)setNotification:(NSString *)_UUIDstring with:(BOOL)_switch;
 -(BOOL)connect:(NSInteger)num;
 -(BOOL)disconnect;
 -(BOOL)beConnected;
@@ -35,19 +34,22 @@ private:
     ofxBLEdelegate * BLEmodule;
     bool bConnectedBLE;
     
-public:
-    ofxBLE();
-    virtual~ofxBLE();
-    bool setup();
-    bool setup(string _BLEUUID, string _RXUUID, string _TXUUID);
-    void setBLE(string _uuid);
-    void setRX(string _uuid);
-    void setTX(string _uuid);
-    void scan();
-    void stopScan();
-    void connectAction(int num = 0);
+protected:
+    NSString * sToNS(string _s);
     void connect(int num = 0);
     void disconnect();
     
-    
+public:
+    explicit ofxBLE();
+    virtual~ofxBLE();
+    bool setup();
+    bool setup(string _BLEUUID);
+    void setBLE(string _uuid) { [BLEmodule setBLE:sToNS(_uuid)]; }
+    void getData(string _uuid) { [BLEmodule getData:sToNS(_uuid)]; }
+    void setNotification(string _uuid, bool _switch);
+    void scan() { [BLEmodule scan]; }
+    void stopScan() { [BLEmodule stopScan]; }
+    void connectAction(int num = 0);
+    void disconnected() { bConnectedBLE = false; }
+    bool isConnected() const { return bConnectedBLE; }
 };

@@ -1,6 +1,5 @@
 //
 //  ofxBLE.m
-//  ofxBLE
 //
 //  Created by kim jung un on 5/16/13.
 //  Copyright (c) 2013 azuremous.net All rights reserved.
@@ -23,28 +22,31 @@
     BLE = nil;
     [super dealloc];
 }
--(BOOL)scan{ return [BLE startScan]; }
--(void)stopScan{ [BLE stopScan]; }
+-(BOOL)scan { return [BLE startScan]; }
+-(void)stopScan { [BLE stopScan]; }
 
 -(void)setBLE:(NSString *)_BLEUUIDstring
 {
     BLE.BLEUUID = [[CBUUID UUIDWithString:_BLEUUIDstring] retain];
+    BLE.BLEUUUIDstring = _BLEUUIDstring;
 }
--(void)setRX:(NSString *)_RXUUIDstring
+
+-(void)getData:(NSString *)_UUIDstring { [BLE readData:_UUIDstring]; }
+
+-(void)setNotification:(NSString *)_UUIDstring with:(BOOL)_switch
 {
-    BLE.RXUUID = [[CBUUID UUIDWithString:_RXUUIDstring] retain];
+    [BLE setNotification:_UUIDstring status:_switch];
 }
--(void)setTX:(NSString *)_TXUUIDstring
-{
-    BLE.TXEUUID = [[CBUUID UUIDWithString:_TXUUIDstring] retain];
-}
+
 -(BOOL)connect:(NSInteger)num
 {
-    NSArray * devices = [BLE  discoveredPeripherals];
-    //NSLog(@"devices:%@", BLE.discoveredPeripherals);
-    CBPeripheral * peripheral = (CBPeripheral*)[devices objectAtIndex:num];
-    //return true;
-    return [BLE connect:peripheral];
+    if (BLE.discoveredUUID) {
+        NSArray * devices = [BLE  discoveredPeripherals];
+        BLE_LOG(@"devices:%@", BLE.discoveredPeripherals);
+        CBPeripheral * peripheral = (CBPeripheral*)[devices objectAtIndex:num];
+        return [BLE connect:peripheral];
+    }
+    return false;
 }
 -(BOOL)disconnect
 {
@@ -57,70 +59,78 @@
 
 #pragma mark - delegate
 
--(void)alarmDiscoverBLE{ if ([BLE discoveredUUID]) ofMessage("alarmDiscoverBLE"); }
--(void)alarmConnectBLE{ if ([BLE beConnected]) ofMessage("alarmConnectBLE"); }
--(void)alarmDisconnectBLE{ if (![BLE beConnected]) ofMessage("alarmDisconnectBLE"); }
+-(void)alarmFind{
+    ofSendMessage("find action start");
+}
+
+-(void)alarmDiscoverBLE:(NSUInteger)_id name:(NSString *)_name{
+    
+    if ([BLE discoveredUUID]){
+        ofSendMessage("Discover");
+        char * number = new char[5];
+        sprintf(number, "%d", _id);
+        ofSendMessage(number);
+        const char * namePtr = [_name UTF8String];
+        ofSendMessage(namePtr);
+        delete [] number;
+    }
+}
+-(void)alarmConnectBLE{ if ([BLE beConnected]) ofSendMessage("alarmConnectBLE"); }
+-(void)alarmDisconnectBLE{ if (![BLE beConnected]) ofSendMessage("alarmDisconnectBLE"); }
+-(void)alarmChangeValue:(NSString*)value{
+    
+    const char * _value = [value UTF8String];
+    BLE_LOG(@"data:%@",value);
+    ofSendMessage(_value);
+}
 
 @end
 
-//////////////////////////////////////////////////////
-//////////////////      ofxBLE     //////////////////
-////////////////////////////////////////////////////
-
-ofxBLE::ofxBLE():bConnectedBLE(false)
+//--------------------------------------------------------------
+/*public */ofxBLE::ofxBLE():bConnectedBLE(false)
 {
     
 }
 
-ofxBLE::~ofxBLE(){
+//--------------------------------------------------------------
+/*public */ofxBLE::~ofxBLE(){
     
     [BLEmodule dealloc];
 }
 
-bool ofxBLE::setup(){
+//--------------------------------------------------------------
+/*public */bool ofxBLE::setup(){
     BLEmodule = [[ofxBLEdelegate alloc] init];
     return true;
 }
 
-bool ofxBLE::setup(string _BLEUUID, string _RXUUID, string _TXUUID){
+//--------------------------------------------------------------
+/*public */bool ofxBLE::setup(string _BLEUUID){
     
     BLEmodule = [[ofxBLEdelegate alloc] init];
     setBLE(_BLEUUID);
-    setRX(_RXUUID);
-    setTX(_TXUUID);
     return true;
 }
 
-void ofxBLE::setBLE(string _uuid){
-    [BLEmodule setBLE:[NSString stringWithFormat:@"%s",_uuid.c_str()]];
+//--------------------------------------------------------------
+/*public */void ofxBLE::setNotification(string _uuid, bool _switch)
+{
+    [BLEmodule setNotification:sToNS(_uuid) with:_switch];
 }
 
-void ofxBLE::setRX(string _uuid){
-    [BLEmodule setRX:[NSString stringWithFormat:@"%s",_uuid.c_str()]];
-}
-
-void ofxBLE::setTX(string _uuid){
-    [BLEmodule setTX:[NSString stringWithFormat:@"%s",_uuid.c_str()]];
-}
-
-void ofxBLE::scan(){
-    [BLEmodule scan];
-}
-
-void ofxBLE::stopScan(){
-    [BLEmodule stopScan];
-}
-
-void ofxBLE::connectAction(int num){
+//--------------------------------------------------------------
+/*public */void ofxBLE::connectAction(int num){
     
     if (!bConnectedBLE) connect(num);
     else disconnect();
 }
 
-void ofxBLE::connect(int num){
-    bConnectedBLE = [BLEmodule connect:num];
-}
+//--------------------------------------------------------------
+/*protected */void ofxBLE::connect(int num){ bConnectedBLE = [BLEmodule connect:num]; }
 
-void ofxBLE::disconnect(){
-    if([BLEmodule disconnect]) bConnectedBLE = false;
-}
+//--------------------------------------------------------------
+/*protected */void ofxBLE::disconnect(){ if([BLEmodule disconnect]) disconnected(); }
+
+//--------------------------------------------------------------
+/*protected */NSString * ofxBLE::sToNS(string _s){ return [NSString stringWithFormat:@"%s",_s.c_str()]; }
+

@@ -1,6 +1,5 @@
 //
 //  BLEdetector.h
-//  ofxBLE
 //
 //  Created by kim jung un on 5/16/13.
 //  Copyright (c) 2013 azuremous.net All rights reserved.
@@ -11,7 +10,7 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 
 // Debug
-#define BLE_DEBUG
+#define BLE_DEBUGs
 
 #ifdef BLE_DEBUG
 #define BLE_LOG(...) NSLog(__VA_ARGS__)
@@ -20,13 +19,16 @@
 #define BLE_LOG(...)
 #define BLE_LOG_METHOD
 #endif
+//
 
 @class alarmBLE;
 @protocol alarmBLEdelegate <NSObject>
 
--(void)alarmDiscoverBLE;
+-(void)alarmFind;
+-(void)alarmDiscoverBLE:(NSUInteger)_id name:(NSString *)_name;
 -(void)alarmConnectBLE;
 -(void)alarmDisconnectBLE;
+-(void)alarmChangeValue:(NSString*)value;
 
 @end
 
@@ -40,10 +42,8 @@
 @property(nonatomic, assign) id <alarmBLEdelegate> discoveryDelegate;
 @property(nonatomic, strong)NSMutableArray * discoveredPeripherals;
 @property(nonatomic, retain)CBUUID *BLEUUID;
-@property(nonatomic, retain)CBUUID *RXUUID;
-@property(nonatomic, retain)CBUUID *TXEUUID;
-@property(readonly)NSInteger RX_data;
-@property(readwrite)NSInteger TX_data;
+@property(nonatomic, retain)CBUUID *getUUID;
+@property(nonatomic, retain)NSString * BLEUUUIDstring;
 @property(readonly)BOOL discoveredUUID;
 @property(readonly)BOOL beConnected;
 
@@ -52,6 +52,8 @@
 -(BOOL)connect:(CBPeripheral*)peripheral;
 -(BOOL)disconnect;
 
--(void)writeTX:(unsigned char)data;
+-(void)sendData:(NSString *)_UUIDstring with:(NSData *)_data;
+-(void)readData:(NSString *)_UUIDstring;
+-(void)setNotification:(NSString *)_UUIDstring status:(BOOL)notice;
 
 @end

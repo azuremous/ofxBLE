@@ -51,5 +51,6 @@ public:
     void stopScan() { [BLEmodule stopScan]; }
     void connectAction(int num = 0);
     void disconnected() { bConnectedBLE = false; }
+    void exit(){ [BLEmodule disconnect]; }
     bool isConnected() const { return bConnectedBLE; }
 };

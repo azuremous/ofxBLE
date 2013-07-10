@@ -77,6 +77,7 @@
 }
 -(void)alarmConnectBLE{ if ([BLE beConnected]) ofSendMessage("alarmConnectBLE"); }
 -(void)alarmDisconnectBLE{ if (![BLE beConnected]) ofSendMessage("alarmDisconnectBLE"); }
+-(void)alarmDiscoverCharacteristic{ if([BLE beConnected]) ofSendMessage("alarmReady"); }
 -(void)alarmChangeValue:(NSString*)value{
     
     const char * _value = [value UTF8String];
@@ -95,6 +96,7 @@
 //--------------------------------------------------------------
 /*public */ofxBLE::~ofxBLE(){
     
+    [BLEmodule disconnect];
     [BLEmodule dealloc];
 }
 

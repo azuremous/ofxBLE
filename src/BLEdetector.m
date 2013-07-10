@@ -219,6 +219,7 @@
 - (void) centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
     [self initData];
+    [peripherals removeAllObjects];
     [discoveryDelegate alarmDisconnectBLE];
     BLE_LOG(@"Disconnect from the peripheral: %@", [peripheral name]);
 }
@@ -254,6 +255,7 @@
 - (void) peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error;
 {
     BLE_LOG(@"peripheral did Discover Characteristics For Service");
+    [discoveryDelegate alarmDiscoverCharacteristic];
 }
 
 -(void) peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{

@@ -27,6 +27,7 @@
 -(void)alarmFind;
 -(void)alarmDiscoverBLE:(NSUInteger)_id name:(NSString *)_name;
 -(void)alarmConnectBLE;
+-(void)alarmDiscoverCharacteristic;
 -(void)alarmDisconnectBLE;
 -(void)alarmChangeValue:(NSString*)value;
 

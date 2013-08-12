@@ -75,9 +75,9 @@
         delete [] number;
     }
 }
--(void)alarmConnectBLE{ if ([BLE beConnected]) ofSendMessage("alarmConnectBLE"); }
--(void)alarmDisconnectBLE{ if (![BLE beConnected]) ofSendMessage("alarmDisconnectBLE"); }
--(void)alarmDiscoverCharacteristic{ if([BLE beConnected]) ofSendMessage("alarmReady"); }
+-(void)alarmConnectBLE{ if ([BLE beConnected]) ofSendMessage("try to connect"); }
+-(void)alarmDisconnectBLE{ if (![BLE beConnected]) ofSendMessage("Disconnected BLE"); }
+-(void)alarmDiscoverCharacteristic{ if([BLE beConnected]) ofSendMessage("ready BLE"); }
 -(void)alarmChangeValue:(NSString*)value{
     
     const char * _value = [value UTF8String];
@@ -88,7 +88,9 @@
 @end
 
 //--------------------------------------------------------------
-/*public */ofxBLE::ofxBLE():bConnectedBLE(false)
+/*public */ofxBLE::ofxBLE()
+:_bConnectedBLE(false)
+,_bRealConnect(false)
 {
     
 }
@@ -96,20 +98,20 @@
 //--------------------------------------------------------------
 /*public */ofxBLE::~ofxBLE(){
     
-    [BLEmodule disconnect];
-    [BLEmodule dealloc];
+    [_BLEmodule disconnect];
+    [_BLEmodule dealloc];
 }
 
 //--------------------------------------------------------------
 /*public */bool ofxBLE::setup(){
-    BLEmodule = [[ofxBLEdelegate alloc] init];
+    _BLEmodule = [[ofxBLEdelegate alloc] init];
     return true;
 }
 
 //--------------------------------------------------------------
 /*public */bool ofxBLE::setup(string _BLEUUID){
     
-    BLEmodule = [[ofxBLEdelegate alloc] init];
+    _BLEmodule = [[ofxBLEdelegate alloc] init];
     setBLE(_BLEUUID);
     return true;
 }
@@ -117,21 +119,50 @@
 //--------------------------------------------------------------
 /*public */void ofxBLE::setNotification(string _uuid, bool _switch)
 {
-    [BLEmodule setNotification:sToNS(_uuid) with:_switch];
+    [_BLEmodule setNotification:sToNS(_uuid) with:_switch];
 }
 
 //--------------------------------------------------------------
 /*public */void ofxBLE::connectAction(int num){
     
-    if (!bConnectedBLE) connect(num);
+    if (!_bConnectedBLE) connect(num);
     else disconnect();
 }
 
 //--------------------------------------------------------------
-/*protected */void ofxBLE::connect(int num){ bConnectedBLE = [BLEmodule connect:num]; }
+/*public */void ofxBLE::disconnected(){
+    _status = BLE_DISCONNECT;
+    _bRealConnect = false;
+    _bConnectedBLE = false;
+}
 
 //--------------------------------------------------------------
-/*protected */void ofxBLE::disconnect(){ if([BLEmodule disconnect]) disconnected(); }
+/*public */bool ofxBLE::checkStatus(ofMessage _msg){
+    
+    string _msgString = _msg.message;
+    
+    if (_msgString == "find action start") {
+        _status = BLE_FIND;
+    }else if (_msgString == "Discover") {
+        _status = BLE_DISCOVER;
+    }else if (_msgString == "try to connect") {
+        _status = BLE_TRY_CONNECT;
+    }else if (_msgString == "Disconnected BLE") {
+        disconnected();
+    }else if (_msgString == "ready BLE") {
+        _status = BLE_CONNECT;
+        _bRealConnect = true;
+    }else if (_msgString != " " && _bRealConnect){
+        return true;
+    }
+    return false;
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxBLE::connect(int num){ _bConnectedBLE = [_BLEmodule connect:num]; }
+
+//--------------------------------------------------------------
+/*protected */void ofxBLE::disconnect(){ if([_BLEmodule disconnect]) disconnected(); }
 
 //--------------------------------------------------------------
 /*protected */NSString * ofxBLE::sToNS(string _s){ return [NSString stringWithFormat:@"%s",_s.c_str()]; }

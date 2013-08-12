@@ -114,6 +114,8 @@
         return true;
     }
     BLE_LOG(@"fail connectAction!!!");
+    [self disconnect];
+    [self initData];
     return false;
 }
 
@@ -121,6 +123,7 @@
     if (activePeripheral && activePeripheral.isConnected) {
         [self stopScan];
         [CBmanager cancelPeripheralConnection:activePeripheral];
+        BLE_LOG(@"disconnected");
         return true;
     }else{ return false; }
 }

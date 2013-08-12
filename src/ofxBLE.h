@@ -27,30 +27,40 @@
 
 @end
 
+typedef enum {
+    BLE_DISCONNECT,
+    BLE_FIND,
+    BLE_DISCOVER,
+    BLE_TRY_CONNECT,
+    BLE_CONNECT
+}BLE_STATUS;
 
 class ofxBLE {
     
 private:
-    ofxBLEdelegate * BLEmodule;
-    bool bConnectedBLE;
-    
+    ofxBLEdelegate * _BLEmodule;
+    bool _bConnectedBLE;
+    bool _bRealConnect;
+    BLE_STATUS _status;
 protected:
     NSString * sToNS(string _s);
     void connect(int num = 0);
     void disconnect();
-    
+    void setBLE(string _uuid) { [_BLEmodule setBLE:sToNS(_uuid)]; }
 public:
     explicit ofxBLE();
     virtual~ofxBLE();
     bool setup();
     bool setup(string _BLEUUID);
-    void setBLE(string _uuid) { [BLEmodule setBLE:sToNS(_uuid)]; }
-    void getData(string _uuid) { [BLEmodule getData:sToNS(_uuid)]; }
+    void getData(string _uuid) { [_BLEmodule getData:sToNS(_uuid)]; }
     void setNotification(string _uuid, bool _switch);
-    void scan() { [BLEmodule scan]; }
-    void stopScan() { [BLEmodule stopScan]; }
+    void scan() { [_BLEmodule scan]; }
+    void stopScan() { [_BLEmodule stopScan]; }
     void connectAction(int num = 0);
-    void disconnected() { bConnectedBLE = false; }
-    void exit(){ [BLEmodule disconnect]; }
-    bool isConnected() const { return bConnectedBLE; }
+    void disconnected();
+    void exit(){ [_BLEmodule disconnect]; }
+    bool checkStatus(ofMessage _msg);
+    bool isConnected() const { return _bRealConnect; }
+    BLE_STATUS getStatus() const { return _status; }
+
 };

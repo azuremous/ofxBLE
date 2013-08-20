@@ -10,7 +10,7 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 
 // Debug
-#define BLE_DEBUGs
+#define BLE_DEBUG
 
 #ifdef BLE_DEBUG
 #define BLE_LOG(...) NSLog(__VA_ARGS__)
@@ -25,7 +25,7 @@
 @protocol alarmBLEdelegate <NSObject>
 
 -(void)alarmFind;
--(void)alarmDiscoverBLE:(NSUInteger)_id name:(NSString *)_name;
+-(void)alarmDiscoverBLE;
 -(void)alarmConnectBLE;
 -(void)alarmDiscoverCharacteristic;
 -(void)alarmDisconnectBLE;
@@ -41,13 +41,15 @@
 }
 
 @property(nonatomic, assign) id <alarmBLEdelegate> discoveryDelegate;
-@property(nonatomic, strong)NSMutableArray * discoveredPeripherals;
-@property(nonatomic, retain)CBUUID *BLEUUID;
-@property(nonatomic, retain)CBUUID *getUUID;
-@property(nonatomic, retain)NSString * BLEUUUIDstring;
-@property(readonly)BOOL discoveredUUID;
-@property(readonly)BOOL beConnected;
+@property(nonatomic, strong) NSMutableArray * discoveredPeripherals;
+@property(nonatomic, retain) CBUUID *BLEUUID;
+@property(nonatomic, retain) CBUUID *getUUID;
+@property(nonatomic, retain) NSString * BLEUUUIDstring;
+@property(nonatomic, assign) BOOL discoveredUUID;
+@property(readonly) BOOL beConnected;
+@property(readonly) NSString * BLEID;
 
+-(BOOL)checkStatus;
 -(BOOL)startScan;
 -(void)stopScan;
 -(BOOL)connect:(CBPeripheral*)peripheral;

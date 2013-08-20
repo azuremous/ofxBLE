@@ -16,6 +16,7 @@
 @synthesize BLEUUUIDstring; //NSString
 @synthesize discoveredUUID; //bool
 @synthesize beConnected;    //bool
+@synthesize BLEID; //NSString
 
 -(id)init{
     
@@ -54,6 +55,11 @@
     CBmanager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
 }
 
+-(BOOL)checkStatus
+{
+    return [self isBLECapableHardware];
+}
+
 - (BOOL) isBLECapableHardware
 {
     NSString * state = nil;
@@ -74,6 +80,7 @@
             break;
         case CBCentralManagerStatePoweredOn:
             //[self loadSavedDevices];
+            [self startScan];
             BLE_LOG(@"CBCentralManagerStatePoweredOn");
 			[CBmanager retrieveConnectedPeripherals];
             return TRUE;
@@ -190,11 +197,11 @@
         }
     }
      
-    discoveredUUID = true;
     [peripherals addObject:peripheral];
     BLE_LOG(@"New UUID: %@", peripheral.name);//nsstring
     BLE_LOG(@"Peripherals count: %d", [peripherals count]);
-    [discoveryDelegate alarmDiscoverBLE:[peripherals count] name:peripheral.name];
+    discoveredUUID = true;
+    [discoveryDelegate alarmDiscoverBLE];
 }
 
 - (void)centralManager:(CBCentralManager *)central didRetrievePeripherals:(NSArray *)peripherals {
@@ -258,15 +265,17 @@
 - (void) peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error;
 {
     BLE_LOG(@"peripheral did Discover Characteristics For Service");
+    BLEID = peripheral.name; //set id
+    BLE_LOG(@"id is %@\n", BLEID);
     [discoveryDelegate alarmDiscoverCharacteristic];
 }
 
 -(void) peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
-    BLE_LOG(@"peripheral did update Characteristics For Service");
+    //BLE_LOG(@"peripheral did update Characteristics For Service");
     if ([[characteristic UUID] isEqual:getUUID]) {
         NSData * _data = [characteristic value];
         NSString *dataDescription = [_data description];
-        BLE_LOG(@"get data from:%@",characteristic.UUID);
+        //BLE_LOG(@"get data from:%@",characteristic.UUID);
         [discoveryDelegate alarmChangeValue:dataDescription];
     }
 }
@@ -310,7 +319,7 @@
                     /* Everything is found, read characteristic ! */
                     getUUID = characteristic.UUID;
                     [peripheral readValueForCharacteristic:characteristic];
-                    BLE_LOG(@"read data from:%@",getUUID);
+                    //BLE_LOG(@"read data from:%@",getUUID);
                 }
             }
         }
@@ -323,7 +332,7 @@
             for (CBCharacteristic *characteristic in service.characteristics ) {
                 if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:cUUID]])
                 {
-                    BLE_LOG(@"set notification:%d",enable);
+                    //BLE_LOG(@"set notification:%d",enable);
                     [peripheral setNotifyValue:enable forCharacteristic:characteristic];
                 }
             }

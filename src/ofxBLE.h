@@ -22,9 +22,10 @@
 -(void)getData:(NSString *)_UUIDstring;
 -(void)setNotification:(NSString *)_UUIDstring with:(BOOL)_switch;
 -(BOOL)connect:(NSInteger)num;
+-(BOOL)connectWithID:(NSString *)_id;
 -(BOOL)disconnect;
 -(BOOL)beConnected;
-
+-(NSString*)getBLEID;
 @end
 
 typedef enum {
@@ -45,6 +46,7 @@ private:
 protected:
     NSString * sToNS(string _s);
     void connect(int num = 0);
+    void connectWithID(string id);
     void disconnect();
     void setBLE(string _uuid) { [_BLEmodule setBLE:sToNS(_uuid)]; }
 public:
@@ -57,10 +59,12 @@ public:
     void scan() { [_BLEmodule scan]; }
     void stopScan() { [_BLEmodule stopScan]; }
     void connectAction(int num = 0);
+    void connectActionWithID(string id);
     void disconnected();
     void exit(){ [_BLEmodule disconnect]; }
     bool checkStatus(ofMessage _msg);
     bool isConnected() const { return _bRealConnect; }
+    string getID();
     BLE_STATUS getStatus() const { return _status; }
 
 };

@@ -22,7 +22,10 @@
     BLE = nil;
     [super dealloc];
 }
--(BOOL)scan { return [BLE startScan]; }
+-(BOOL)scan {
+    return [BLE checkStatus];
+}
+    //return [BLE startScan]; }
 -(void)stopScan { [BLE stopScan]; }
 
 -(void)setBLE:(NSString *)_BLEUUIDstring
@@ -42,19 +45,46 @@
 {
     if (BLE.discoveredUUID) {
         NSArray * devices = [BLE  discoveredPeripherals];
-        BLE_LOG(@"devices:%@", BLE.discoveredPeripherals);
         CBPeripheral * peripheral = (CBPeripheral*)[devices objectAtIndex:num];
+        
         return [BLE connect:peripheral];
     }
     return false;
 }
+
+-(BOOL)connectWithID:(NSString *)_id
+{
+    if (BLE.discoveredUUID) {
+        NSArray * devices = [BLE discoveredPeripherals];
+        BLE_LOG(@"get id is:%@", _id);
+        for (int i = 0; i < devices.count; i++) {
+            CBPeripheral *peripheral = [devices objectAtIndex:i];
+            
+            if (memcmp(_id, peripheral.name, sizeof(NSString*)) == 0) {
+                BLE_LOG(@"connect success!!:%@", peripheral.name);
+                return [BLE connect:peripheral];
+            }else{
+                BLE_LOG(@"connect fail:%@", peripheral.name);
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
 -(BOOL)disconnect
 {
     return [BLE disconnect];
 }
+
 -(BOOL)beConnected
 {
     return [BLE beConnected];
+}
+
+-(NSString*)getBLEID
+{
+    return [BLE BLEID];
 }
 
 #pragma mark - delegate
@@ -63,17 +93,10 @@
     ofSendMessage("find action start");
 }
 
--(void)alarmDiscoverBLE:(NSUInteger)_id name:(NSString *)_name{
+-(void)alarmDiscoverBLE{
     
-    if ([BLE discoveredUUID]){
-        ofSendMessage("Discover");
-        char * number = new char[5];
-        sprintf(number, "%d", _id);
-        ofSendMessage(number);
-        const char * namePtr = [_name UTF8String];
-        ofSendMessage(namePtr);
-        delete [] number;
-    }
+    if ([BLE discoveredUUID]){ ofSendMessage("Discover"); }
+    //if (!BLE.discoveredUUID) { BLE.discoveredUUID = true; }
 }
 -(void)alarmConnectBLE{ if ([BLE beConnected]) ofSendMessage("try to connect"); }
 -(void)alarmDisconnectBLE{ if (![BLE beConnected]) ofSendMessage("Disconnected BLE"); }
@@ -81,7 +104,6 @@
 -(void)alarmChangeValue:(NSString*)value{
     
     const char * _value = [value UTF8String];
-    BLE_LOG(@"data:%@",value);
     ofSendMessage(_value);
 }
 
@@ -130,6 +152,12 @@
 }
 
 //--------------------------------------------------------------
+/*public */void ofxBLE::connectActionWithID(string id){
+    if (!_bConnectedBLE) connectWithID(id);
+    else disconnect();
+}
+
+//--------------------------------------------------------------
 /*public */void ofxBLE::disconnected(){
     _status = BLE_DISCONNECT;
     _bRealConnect = false;
@@ -140,7 +168,6 @@
 /*public */bool ofxBLE::checkStatus(ofMessage _msg){
     
     string _msgString = _msg.message;
-    
     if (_msgString == "find action start") {
         _status = BLE_FIND;
     }else if (_msgString == "Discover") {
@@ -159,7 +186,18 @@
 }
 
 //--------------------------------------------------------------
+/*public */string ofxBLE::getID(){
+    
+    const char * _value = [[_BLEmodule getBLEID] UTF8String];
+    //string _id(_value, 12, 8);
+    return _value;
+}
+
+//--------------------------------------------------------------
 /*protected */void ofxBLE::connect(int num){ _bConnectedBLE = [_BLEmodule connect:num]; }
+
+//--------------------------------------------------------------
+/*protected */void ofxBLE::connectWithID(string id){ _bConnectedBLE = [_BLEmodule connectWithID:sToNS(id)]; }
 
 //--------------------------------------------------------------
 /*protected */void ofxBLE::disconnect(){ if([_BLEmodule disconnect]) disconnected(); }
